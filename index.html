@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Form Builder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      background-color: #f9f9f9;
+    }
+    .container {
+      width: 80%;
+      max-width: 900px;
+      background-color: #ffffff;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+    }
+    h1, h2 {
+      margin: 20px 0;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    input, select, button {
+      margin: 5px 0;
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+    }
+    #dynamicTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    #dynamicTable th, #dynamicTable td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    #dynamicTable th {
+      background-color: #f4f4f4;
+    }
+    button {
+      cursor: pointer;
+      padding: 6px 12px;
+      border: none;
+      background-color: lightgray;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #d3d3d3;
+    }
+    pre {
+      background-color: #fafafa;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-top: 20px;
+      width: 100%;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      text-align: left;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Dynamic Form Builder</h1>
+
+    <div>
+      <label for="name">Input Name:</label>
+      <input type="text" id="name" placeholder="Field Name">
+      <br>
+      
+      <label for="type">Input Type:</label>
+      <select id="type">
+        <option value="text">Text</option>
+        <option value="radio">Radio</option>
+        <option value="email">Email</option>
+        <option value="dropdown">Dropdown</option>
+        <option value="checkbox">Checkbox</option>
+        <option value="file">File</option>
+        <option value="number">Number</option>
+      </select>
+      <br>
+
+      <label for="required">Required:</label>
+      <select id="required">
+        <option value="True">True</option>
+        <option value="False">False</option>
+      </select>
+      <br>
+
+      <label for="label">Input Label:</label>
+      <input type="text" id="label" placeholder="Field Label">
+      <br>
+
+      <button id="addElementButton">Add Element</button>
+      <p class="error" id="errorMessage"></p>
+    </div>
+
+    <h2>Dynamic Table</h2>
+    <table id="dynamicTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Required</th>
+          <th>Label</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+
+    <h2>Generated HTML Code:</h2>
+    <div id="generatedForm">
+    </div>
+  </div>
+
+  <script>
+    const addElementButton = document.getElementById('addElementButton');
+    const nameInput = document.getElementById('name');
+    const typeSelect = document.getElementById('type');
+    const requiredSelect = document.getElementById('required');
+    const labelInput = document.getElementById('label');
+    const dynamicTable = document.getElementById('dynamicTable').getElementsByTagName('tbody')[0];
+    const errorMessage = document.getElementById('errorMessage');
+    const generatedForm = document.getElementById('generatedForm');
+
+    let formElements = [];
+
+    addElementButton.addEventListener('click', function() {
+      const name = nameInput.value.trim();
+      const type = typeSelect.value;
+      const required = requiredSelect.value;
+      const label = labelInput.value.trim();
+
+      if (name === '' || label === '') {
+        errorMessage.textContent = 'Both Name and Label are required.';
+        return;
+      }
+
+      errorMessage.textContent = '';
+
+      formElements.push({ name, type, required, label });
+
+      const row = dynamicTable.insertRow();
+      row.insertCell(0).textContent = name;
+      row.insertCell(1).textContent = type;
+      row.insertCell(2).textContent = required;
+      row.insertCell(3).textContent = label;
+
+      nameInput.value = '';
+      labelInput.value = '';
+      requiredSelect.value = 'False';
+      typeSelect.value = 'text';
+    });
+
+    function generateCompleteHTML() {
+      let formHTML = '<form>\n';
+
+      formElements.forEach(element => {
+        let htmlCode;
+
+        switch (element.type) {
+          case 'text':
+          case 'email':
+          case 'number':
+            htmlCode = `<label for="${element.name}">${element.label}:</label><input type="${element.type}" id="${element.name}" name="${element.name}" ${element.required === 'True' ? 'required' : ''}><br>\n`;
+            break;
+          case 'radio':
+            htmlCode = `<label>${element.label}:</label><input type="radio" name="${element.name}" value="1" ${element.required === 'True' ? 'required' : ''}> Yes <input type="radio" name="${element.name}" value="0"> No<br>\n`;
+            break;
+          case 'checkbox':
+            htmlCode = `<label for="${element.name}">${element.label}:</label><input type="checkbox" id="${element.name}" name="${element.name}" ${element.required === 'True' ? 'required' : ''}><br>\n`;
+            break;
+          case 'dropdown':
+            htmlCode = `<label for="${element.name}">${element.label}:</label><select id="${element.name}" name="${element.name}" ${element.required === 'True' ? 'required' : ''}><option value="">Select...</option><option value="option1">Option 1</option><option value="option2">Option 2</option></select><br>\n`;
+            break;
+          case 'file':
+            htmlCode = `<label for="${element.name}">${element.label}:</label><input type="file" id="${element.name}" name="${element.name}" ${element.required === 'True' ? 'required' : ''}><br>\n`;
+            break;
+        }
+
+        formHTML += htmlCode;
+      });
+
+      formHTML += '</form>';
+
+      const pre = document.createElement('pre');
+      pre.textContent = formHTML;
+      generatedForm.innerHTML = '';
+      generatedForm.appendChild(pre);
+    }
+
+    const generateButton = document.createElement('button');
+    generateButton.textContent = 'Generate Complete Form Code';
+    generateButton.addEventListener('click', generateCompleteHTML);
+    document.querySelector('.container').appendChild(generateButton);
+  </script>
+
+</body>
+</html>
